@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlashMaster - Professional Flashcard Quiz App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #06b6d4;
+            --bg: #0f172a;
+            --bg-elevated: #1e293b;
+            --surface: #334155;
+            --surface-hover: #475569;
+            --text: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --glass: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.4);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.5);
+            --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.6);
+            --radius-sm: 8px;
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-mesh {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(236, 72, 153, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(6, 182, 212, 0.08) 0%, transparent 60%);
+            animation: meshFloat 20s ease-in-out infinite;
+        }
+
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+        }
+
+        @keyframes meshFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.05); }
+            66% { transform: translate(-20px, 20px) scale(0.95); }
+        }
+
+        /* Layout */
+        .app-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .app-header {
+            padding: 40px 0 30px;
+            text-align: center;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .brand-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
+        }
+
+        .brand h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--text), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        .app-header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Stats Dashboard */
+        .stats-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 16px;
+            margin-bottom: 40px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .stat-card {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 20px;
+        }
+
+        .stat-card:nth-child(1) .stat-icon { background: rgba(99, 102, 241, 0.2); }
+        .stat-card:nth-child(2) .stat-icon { background: rgba(16, 185, 129, 0.2); }
+        .stat-card:nth-child(3) .stat-icon { background: rgba(245, 158, 11, 0.2); }
+        .stat-card:nth-child(4) .stat-icon { background: rgba(236, 72, 153, 0.2); }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .progress-track {
+            height: 8px;
+            background: var(--bg-elevated);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 4px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Flashcard Scene */
+        .study-area {
+            max-width: 650px;
+            margin: 0 auto 40px;
+        }
+
+        .flashcard-scene {
+            perspective: 1200px;
+            height: 380px;
+            margin-bottom: 30px;
+            cursor: pointer;
+        }
+
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: var(--radius-xl);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--glass-border);
+            overflow: hidden;
+        }
+
+        .flashcard-face::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0.5;
+            z-index: 0;
+        }
+
+        .flashcard-front {
+            background: linear-gradient(145deg, var(--bg-elevated), var(--surface));
+        }
+
+        .flashcard-front::before {
+            background: radial-gradient(circle at 30% 20%, rgba(99, 102, 241, 0.15), transparent 60%);
+        }
+
+        .flashcard-back {
+            background: linear-gradient(145deg, var(--primary-dark), var(--primary));
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-back::before {
+            background: radial-gradient(circle at 70% 80%, rgba(236, 72, 153, 0.2), transparent 60%);
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            display: flex;
+            gap: 8px;
+            z-index: 2;
+        }
+
+        .badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(8px);
+        }
+
+        .badge-category {
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--primary-light);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .badge-difficulty {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .card-question {
+            font-size: 1.6rem;
+            font-weight: 700;
+            line-height: 1.5;
+            color: var(--text);
+            margin-bottom: 20px;
+        }
+
+        .card-answer {
+            font-size: 1.4rem;
+            font-weight: 600;
+            line-height: 1.6;
+            color: white;
+        }
+
+        .card-hint {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            opacity: 0.7;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 2;
+        }
+
+        .flashcard-back .card-hint {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .card-number {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            opacity: 0.5;
+            z-index: 2;
+        }
+
+        /* Controls */
+        .controls-bar {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 24px;
+            border: none;
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.5s;
+        }
+
+        .btn:hover::after {
+            transform: translateX(100%);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-secondary {
+            background: var(--bg-elevated);
+            color: var(--text-secondary);
+            border: 1px solid var(--surface);
+        }
+
+        .btn-secondary:hover {
+            background: var(--surface);
+            border-color: var(--primary);
+            color: var(--text);
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 10px 18px;
+            font-size: 0.85rem;
+        }
+
+        .keyboard-hints {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 16px;
+            opacity: 0.6;
+        }
+
+        kbd {
+            display: inline-block;
+            padding: 3px 8px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--surface);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.75rem;
+            font-weight: 600;
+            box-shadow: 0 2px 0 var(--surface);
+        }
+
+        /* Section Cards */
+        .section-card {
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .section-card:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title svg {
+            width: 24px;
+            height: 24px;
+            color: var(--primary);
+        }
+
+        /* Form */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input, textarea, select {
+            padding: 14px 16px;
+            border-radius: var(--radius);
+            border: 1px solid var(--surface);
+            background: var(--bg);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Card Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .card-item {
+            background: var(--bg-elevated);
+            border: 1px solid var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .card-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.3s;
+        }
+
+        .card-item:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-item:hover::before {
+            width: 6px;
+        }
+
+        .card-item.known {
+            border-color: var(--success);
+        }
+
+        .card-item.known::before {
+            background: var(--success);
+        }
+
+        .card-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .card-item-question {
+            font-weight: 700;
+            font-size: 1.05rem;
+            line-height: 1.5;
+            color: var(--text);
+            margin-bottom: 8px;
+            padding-right: 30px;
+        }
+
+        .card-item-answer {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .card-item-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--surface);
+        }
+
+        .card-item-tags {
+            display: flex;
+            gap: 6px;
+        }
+
+        .tag-pill {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--primary-light);
+        }
+
+        .card-item-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: var(--surface);
+            color: var(--text);
+        }
+
+        .icon-btn.delete:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--bg-elevated);
+            border-radius: var(--radius-xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 36px;
+            border: 1px solid var(--surface);
+        }
+
+        .empty-state h3 {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: var(--bg-elevated);
+            color: var(--text);
+            padding: 16px 24px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--surface);
+            box-shadow: var(--shadow-xl);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(120%);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            pointer-events: auto;
+            min-width: 280px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .toast-success .toast-icon { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .toast-error .toast-icon { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        .toast-info .toast-icon { background: rgba(99, 102, 241, 0.2); color: var(--primary); }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-elevated);
+            border: 1px solid var(--surface);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            max-width: 500px;
+            width: 100%;
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .modal-text {
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-header { padding: 30px 0 20px; }
+            .brand h1 { font-size: 1.6rem; }
+            .flashcard-scene { height: 320px; }
+            .card-question { font-size: 1.2rem; }
+            .card-answer { font-size: 1.1rem; }
+            .form-grid { grid-template-columns: 1fr; }
+            .section-card { padding: 24px; }
+            .cards-grid { grid-template-columns: 1fr; }
+            .controls-bar { gap: 8px; }
+            .btn { padding: 12px 18px; font-size: 0.9rem; }
+            .stats-dashboard { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 480px) {
+            .flashcard-scene { height: 280px; }
+            .flashcard-face { padding: 30px 20px; }
+            .card-badge { top: 16px; right: 16px; }
+            .card-number { top: 16px; left: 16px; }
+            .card-question { font-size: 1.1rem; }
+            .section-header { flex-direction: column; align-items: flex-start; }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+    </style>
+</head>
+<body>
+    <div class="bg-mesh"></div>
+    <div class="bg-grid"></div>
+
+    <div class="app-container">
+        <header class="app-header">
+            <div class="brand">
+                <div class="brand-icon">⚡</div>
+                <h1>FlashMaster</h1>
+            </div>
+            <p>Master any subject with intelligent flashcards. Add, study, and track your progress.</p>
+        </header>
+
+        <div class="stats-dashboard animate-in">
+            <div class="stat-card">
+                <div class="stat-icon">📚</div>
+                <div class="stat-value" id="statTotal">0</div>
+                <div class="stat-label">Total Cards</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-value" id="statKnown">0</div>
+                <div class="stat-label">Mastered</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📖</div>
+                <div class="stat-value" id="statStudied">0</div>
+                <div class="stat-label">Studied</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-value" id="statProgress">0%</div>
+                <div class="stat-label">Progress</div>
+            </div>
+        </div>
+
+        <div class="progress-container animate-in delay-1">
+            <div class="progress-header">
+                <span>Study Progress</span>
+                <span id="progressText">0 / 0 cards</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div class="study-area animate-in delay-2">
+            <div class="flashcard-scene" id="flashcardScene" onclick="flipCard()">
+                <div class="flashcard" id="flashcard">
+                    <div class="flashcard-face flashcard-front">
+                        <span class="card-number" id="cardNumber">1 / 1</span>
+                        <div class="card-badge">
+                            <span class="badge badge-category" id="cardCategory">General</span>
+                            <span class="badge badge-difficulty" id="cardDifficulty">Easy</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-question" id="cardQuestion">Welcome to FlashMaster!</div>
+                        </div>
+                        <div class="card-hint">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5"/>
+                            </svg>
+                            Click or press Space to flip
+                        </div>
+                    </div>
+                    <div class="flashcard-face flashcard-back">
+                        <div class="card-content">
+                            <div class="card-answer" id="cardAnswer">Add your first flashcard below to get started with your learning journey.</div>
+                        </div>
+                        <div class="card-hint">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                            </svg>
+                            Click to see question
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls-bar">
+                <button class="btn btn-secondary" onclick="previousCard()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Previous
+                </button>
+                <button class="btn btn-primary" onclick="flipCard()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M1 4v6h6M23 20v-6h-6"/>
+                        <path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/>
+                    </svg>
+                    Flip Card
+                </button>
+                <button class="btn btn-secondary" onclick="nextCard()">
+                    Next
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </button>
+                <button class="btn btn-success" onclick="markKnown()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M20 6L9 17l-5-5"/>
+                    </svg>
+                    Mark Known
+                </button>
+                <button class="btn btn-danger btn-sm" onclick="confirmDeleteCurrent()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="keyboard-hints">
+                <kbd>Space</kbd> Flip &nbsp;•&nbsp; <kbd>←</kbd> Previous &nbsp;•&nbsp; <kbd>→</kbd> Next &nbsp;•&nbsp; <kbd>K</kbd> Known &nbsp;•&nbsp; <kbd>Delete</kbd> Remove
+            </div>
+        </div>
+
+        <div class="section-card animate-in delay-3">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span id="formTitle">Create Flashcard</span>
+                </h2>
+                <button class="btn btn-secondary btn-sm" onclick="resetForm()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12a9 9 0 109-9 9.75 9.75 0 006.74 2.74L21 8"/>
+                    </svg>
+                    Reset
+                </button>
+            </div>
+            <form id="cardForm" onsubmit="saveCard(event)">
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label>Question / Front</label>
+                        <textarea id="inputQuestion" placeholder="Enter the question or prompt..." required></textarea>
+                    </div>
+                    <div class="form-group full">
+                        <label>Answer / Back</label>
+                        <textarea id="inputAnswer" placeholder="Enter the answer or explanation..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="inputCategory">
+                            <option value="General">General</option>
+                            <option value="Science">Science</option>
+                            <option value="Technology">Technology</option>
+                            <option value="Mathematics">Mathematics</option>
+                            <option value="History">History</option>
+                            <option value="Language">Language</option>
+                            <option value="Business">Business</option>
+                            <option value="Medicine">Medicine</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Difficulty</label>
+                        <select id="inputDifficulty">
+                            <option value="Easy">Easy</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Hard">Hard</option>
+                            <option value="Expert">Expert</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="saveBtn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                            <polyline points="17 21 17 13 7 13 7 21"/>
+                            <polyline points="7 3 7 8 15 8"/>
+                        </svg>
+                        Save Card
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="exportData()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Export
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('importFile').click()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        Import
+                    </button>
+                    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+                </div>
+            </form>
+        </div>
+
+        <div class="section-card animate-in delay-3">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    Your Collection
+                </h2>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn btn-secondary btn-sm" onclick="shuffleCards()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="16 3 21 3 21 8"/>
+                            <line x1="4" y1="20" x2="21" y2="3"/>
+                            <polyline points="21 16 21 21 16 21"/>
+                            <line x1="15" y1="15" x2="21" y2="21"/>
+                            <line x1="4" y1="4" x2="9" y2="9"/>
+                        </svg>
+                        Shuffle
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="confirmClearAll()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                        </svg>
+                        Clear All
+                    </button>
+                </div>
+            </div>
+            <div id="cardsContainer">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📝</div>
+                    <h3>No flashcards yet</h3>
+                    <p>Create your first flashcard above to start learning</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h3 class="modal-title" id="modalTitle">Confirm Action</h3>
+            <p class="modal-text" id="modalText">Are you sure you want to proceed?</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-danger" id="modalConfirm" onclick="closeModal()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data
+        let cards = JSON.parse(localStorage.getItem('flashcards')) || [
+            { id: Date.now(), question: "What is the time complexity of Binary Search?", answer: "O(log n) - Binary search divides the search interval in half repeatedly until the target value is found.", category: "Technology", difficulty: "Medium", known: false, studied: false },
+            { id: Date.now()+1, question: "What is photosynthesis?", answer: "The process by which plants use sunlight, water, and carbon dioxide to create oxygen and energy in the form of sugar.", category: "Science", difficulty: "Easy", known: false, studied: false },
+            { id: Date.now()+2, question: "Solve: ∫ x² dx", answer: "x³/3 + C - The power rule for integration states that ∫ xⁿ dx = xⁿ⁺¹/(n+1) + C", category: "Mathematics", difficulty: "Medium", known: false, studied: false }
+        ];
+        let currentIndex = 0;
+        let editingId = null;
+        let modalCallback = null;
+
+        const flashcard = document.getElementById('flashcard');
+        const flashcardScene = document.getElementById('flashcardScene');
+
+        function init() {
+            updateDisplay();
+            renderCards();
+            updateStats();
+        }
+
+        function updateDisplay() {
+            if (cards.length === 0) {
+                document.getElementById('cardQuestion').textContent = "No cards available";
+                document.getElementById('cardAnswer').textContent = "Create your first flashcard to begin studying.";
+                document.getElementById('cardCategory').textContent = "Empty";
+                document.getElementById('cardDifficulty').textContent = "-";
+                document.getElementById('cardNumber').textContent = "0 / 0";
+                return;
+            }
+
+            const card = cards[currentIndex];
+            document.getElementById('cardQuestion').textContent = card.question;
+            document.getElementById('cardAnswer').textContent = card.answer;
+            document.getElementById('cardCategory').textContent = card.category;
+            document.getElementById('cardDifficulty').textContent = card.difficulty;
+            document.getElementById('cardNumber').textContent = `${currentIndex + 1} / ${cards.length}`;
+
+            flashcard.classList.remove('flipped');
+
+            const progress = ((currentIndex + 1) / cards.length) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+            document.getElementById('progressText').textContent = `${currentIndex + 1} / ${cards.length} cards`;
+        }
+
+        function updateStats() {
+            const total = cards.length;
+            const known = cards.filter(c => c.known).length;
+            const studied = cards.filter(c => c.studied).length;
+            const progress = total > 0 ? Math.round((known / total) * 100) : 0;
+
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statKnown').textContent = known;
+            document.getElementById('statStudied').textContent = studied;
+            document.getElementById('statProgress').textContent = `${progress}%`;
+        }
+
+        function flipCard() {
+            if (cards.length === 0) return;
+            flashcard.classList.toggle('flipped');
+
+            if (flashcard.classList.contains('flipped')) {
+                const card = cards[currentIndex];
+                if (!card.studied) {
+                    card.studied = true;
+                    saveData();
+                    updateStats();
+                }
+            }
+        }
+
+        function nextCard() {
+            if (cards.length === 0) return;
+            currentIndex = (currentIndex + 1) % cards.length;
+            updateDisplay();
+        }
+
+        function previousCard() {
+            if (cards.length === 0) return;
+            currentIndex = (currentIndex - 1 + cards.length) % cards.length;
+            updateDisplay();
+        }
+
+        function markKnown() {
+            if (cards.length === 0) return;
+            const card = cards[currentIndex];
+            card.known = !card.known;
+            saveData();
+            updateStats();
+            renderCards();
+            showToast(card.known ? 'Card marked as mastered!' : 'Card unmarked', 'success');
+
+            if (card.known && currentIndex < cards.length - 1) {
+                setTimeout(() => nextCard(), 600);
+            }
+        }
+
+        function saveCard(e) {
+            e.preventDefault();
+            const question = document.getElementById('inputQuestion').value.trim();
+            const answer = document.getElementById('inputAnswer').value.trim();
+            const category = document.getElementById('inputCategory').value;
+            const difficulty = document.getElementById('inputDifficulty').value;
+
+            if (!question || !answer) {
+                showToast('Please fill in both fields', 'error');
+                return;
+            }
+
+            if (editingId) {
+                const idx = cards.findIndex(c => c.id === editingId);
+                if (idx !== -1) {
+                    cards[idx] = { ...cards[idx], question, answer, category, difficulty };
+                    showToast('Flashcard updated successfully!', 'success');
+                }
+                editingId = null;
+                document.getElementById('formTitle').textContent = 'Create Flashcard';
+                document.getElementById('saveBtn').innerHTML = `
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                        <polyline points="17 21 17 13 7 13 7 21"/>
+                        <polyline points="7 3 7 8 15 8"/>
+                    </svg>
+                    Save Card
+                `;
+            } else {
+                cards.push({
+                    id: Date.now(),
+                    question, answer, category, difficulty,
+                    known: false, studied: false
+                });
+                currentIndex = cards.length - 1;
+                showToast('Flashcard created!', 'success');
+            }
+
+            saveData();
+            updateDisplay();
+            renderCards();
+            resetForm();
+        }
+
+        function editCard(id) {
+            const card = cards.find(c => c.id === id);
+            if (!card) return;
+
+            document.getElementById('inputQuestion').value = card.question;
+            document.getElementById('inputAnswer').value = card.answer;
+            document.getElementById('inputCategory').value = card.category;
+            document.getElementById('inputDifficulty').value = card.difficulty;
+
+            editingId = id;
+            document.getElementById('formTitle').textContent = 'Edit Flashcard';
+            document.getElementById('saveBtn').innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                Update Card
+            `;
+
+            document.querySelector('.section-card').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function deleteCard(id) {
+            cards = cards.filter(c => c.id !== id);
+            if (currentIndex >= cards.length) currentIndex = Math.max(0, cards.length - 1);
+            saveData();
+            updateDisplay();
+            renderCards();
+            updateStats();
+            showToast('Flashcard deleted', 'info');
+        }
+
+        function confirmDeleteCurrent() {
+            if (cards.length === 0) return;
+            showModal('Delete Card', 'Are you sure you want to delete this flashcard?', () => {
+                deleteCard(cards[currentIndex].id);
+            });
+        }
+
+        function confirmClearAll() {
+            if (cards.length === 0) return;
+            showModal('Clear All Cards', 'This will permanently delete all your flashcards. Continue?', () => {
+                cards = [];
+                currentIndex = 0;
+                saveData();
+                updateDisplay();
+                renderCards();
+                updateStats();
+                showToast('All cards cleared', 'info');
+            });
+        }
+
+        function shuffleCards() {
+            if (cards.length < 2) return;
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[j]] = [cards[j], cards[i]];
+            }
+            currentIndex = 0;
+            saveData();
+            updateDisplay();
+            renderCards();
+            showToast('Cards shuffled!', 'success');
+        }
+
+        function resetForm() {
+            document.getElementById('cardForm').reset();
+            editingId = null;
+            document.getElementById('formTitle').textContent = 'Create Flashcard';
+            document.getElementById('saveBtn').innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                Save Card
+            `;
+        }
+
+        function renderCards() {
+            const container = document.getElementById('cardsContainer');
+            if (cards.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <h3>No flashcards yet</h3>
+                        <p>Create your first flashcard above to start learning</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = '<div class="cards-grid">' + cards.map((card, idx) => `
+                <div class="card-item ${card.known ? 'known' : ''}" onclick="jumpToCard(${idx})">
+                    <div class="card-item-header">
+                        <div class="card-item-tags">
+                            <span class="tag-pill">${card.category}</span>
+                            <span class="tag-pill" style="background: ${getDifficultyColor(card.difficulty)}15; color: ${getDifficultyColor(card.difficulty)}">${card.difficulty}</span>
+                        </div>
+                        ${card.known ? '<span style="color: var(--success); font-size: 1.2rem;">✓</span>' : ''}
+                    </div>
+                    <div class="card-item-question">${escapeHtml(card.question)}</div>
+                    <div class="card-item-answer">${escapeHtml(card.answer)}</div>
+                    <div class="card-item-meta">
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">#${idx + 1}</span>
+                        <div class="card-item-actions" onclick="event.stopPropagation()">
+                            <button class="icon-btn" onclick="editCard(${card.id})" title="Edit">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                            </button>
+                            <button class="icon-btn delete" onclick="deleteCard(${card.id})" title="Delete">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('') + '</div>';
+        }
+
+        function jumpToCard(index) {
+            currentIndex = index;
+            updateDisplay();
+            flashcardScene.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function getDifficultyColor(diff) {
+            const colors = { 'Easy': '#10b981', 'Medium': '#f59e0b', 'Hard': '#ef4444', 'Expert': '#8b5cf6' };
+            return colors[diff] || '#6366f1';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function saveData() {
+            localStorage.setItem('flashcards', JSON.stringify(cards));
+        }
+
+        function exportData() {
+            const data = JSON.stringify(cards, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `flashmaster-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Data exported successfully!', 'success');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        cards = imported;
+                        currentIndex = 0;
+                        saveData();
+                        updateDisplay();
+                        renderCards();
+                        updateStats();
+                        showToast(`Imported ${imported.length} cards!`, 'success');
+                    }
+                } catch (err) {
+                    showToast('Invalid file format', 'error');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // Toast System
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+
+            const icons = {
+                success: '✓',
+                error: '!',
+                info: 'i'
+            };
+
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type]}</div>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+            });
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        // Modal System
+        function showModal(title, text, onConfirm) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalText').textContent = text;
+            document.getElementById('modalOverlay').classList.add('active');
+            modalCallback = onConfirm;
+
+            const confirmBtn = document.getElementById('modalConfirm');
+            confirmBtn.onclick = () => {
+                closeModal();
+                if (modalCallback) modalCallback();
+            };
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+
+        document.getElementById('modalOverlay').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('modalOverlay')) closeModal();
+        });
+
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') {
+                if (e.key === 'Escape') e.target.blur();
+                return;
+            }
+
+            switch(e.key) {
+                case ' ':
+                    e.preventDefault();
+                    flipCard();
+                    break;
+                case 'ArrowLeft':
+                    previousCard();
+                    break;
+                case 'ArrowRight':
+                    nextCard();
+                    break;
+                case 'k':
+                case 'K':
+                    markKnown();
+                    break;
+                case 'Delete':
+                    confirmDeleteCurrent();
+                    break;
+                case 'Escape':
+                    closeModal();
+                    break;
+            }
+        });
+
+        // Touch support for mobile swipe
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        flashcardScene.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, {passive: true});
+
+        flashcardScene.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, {passive: true});
+
+        function handleSwipe() {
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) nextCard();
+                else previousCard();
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
